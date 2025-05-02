@@ -54,7 +54,7 @@ opNode:
 
 ## Quicktsart
 
-```
+```bash
 # Create KinD cluster
 make kind
 
