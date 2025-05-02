@@ -16,3 +16,14 @@ These are all containerized services that can be run in Kubernetes — many OP S
 
 ---
 
+## Highlights
+
+Purpose: “Scaffold for automated OP Stack protocol deployments”
+
+Why this matters: “Protocol velocity, modular config, 1-click onboarding”
+
+OP Stack explainer: “L2 chain composed of op-node, op-geth, batcher…”
+
+Helm value examples: chainId, rpcUrl, enableFaultProofs
+
+Future roadmap: swap mock images with real ones (link to https://github.com/ethereum-optimism/optimism)

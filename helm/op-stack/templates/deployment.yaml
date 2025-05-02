@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opstack.fullname" . }}-node
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "opstack.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "opstack.name" . }}
+    spec:
+      containers:
+        - name: op-node
+          image: {{ .Values.opNode.image }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: CHAIN_ID
+              value: "{{ .Values.opNode.chainId }}"
+            - name: RPC_URL
+              value: "{{ .Values.opNode.rpcUrl }}"
+            - name: FAULT_PROOFS
+              value: "{{ .Values.opNode.enableFaultProofs }}"

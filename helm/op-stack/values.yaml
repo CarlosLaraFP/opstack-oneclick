@@ -1,0 +1,7 @@
+replicaCount: 1
+
+opNode:
+  image: nginx  # placeholder for op-node
+  chainId: 420
+  rpcUrl: https://rpc.testnet.optimism.io
+  enableFaultProofs: true
