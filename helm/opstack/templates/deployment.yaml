@@ -17,13 +17,19 @@ spec:
         prometheus.io/port: "7300"
     spec:
       volumes:
+      - name: jwt-secret
+        secret:
+          secretName: jwt-secret
       - name: rollup-config-vol
         configMap:
           name: rollup-config
       containers:
       - name: op-node
         image: {{ .Values.opNode.image }}
+        imagePullPolicy: IfNotPresent
+        command: ["op-node"]
         args:
+        - "--l2.jwt-secret=/etc/opstack/jwt/jwt.txt"
         - "--l2=http://localhost:8545"
         - "--l1=http://localhost:8546"
         - "--rollup.config=/etc/opstack/rollup.json"
@@ -37,6 +43,9 @@ spec:
           - name: FAULT_PROOFS
             value: "{{ .Values.opNode.enableFaultProofs }}"
         volumeMounts:
+        - name: jwt-secret
+          mountPath: /etc/opstack/jwt
+          readOnly: true
         - name: rollup-config-vol
           mountPath: /etc/opstack/
           readOnly: true

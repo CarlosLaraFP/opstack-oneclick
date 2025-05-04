@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -28,14 +29,24 @@ var deployCmd = &cobra.Command{
 			log.Println(err)
 		}
 
-		log.Println("🚀 Deploying OP Stack...")
-
-		packagePath, err := filepath.Abs("../helm/opstack")
-		if err != nil {
-			log.Fatalf("Failed to get Helm chart path: %v", err)
+		log.Println("🔐 Creating JWT secret...")
+		jwt := generateJWTSecret() // returns hex string
+		const jwtPath = "/tmp/jwt.txt"
+		if err := os.WriteFile(jwtPath, []byte(jwt), 0600); err != nil {
+			log.Println(err)
 		}
 
-		c := exec.Command("helm", "upgrade", "--install", "opstack", packagePath,
+		// Run kubectl create secret
+		secretCmd := exec.Command("kubectl", "create", "secret", "generic", "jwt-secret",
+			"--from-file=jwt.txt="+jwtPath,
+			"-n", namespace)
+		if err := secretCmd.Run(); err != nil {
+			log.Fatalf("❌ Failed to create secret: %v", err)
+		}
+
+		log.Println("🚀 Deploying OP Stack...")
+
+		c := exec.Command("helm", "upgrade", "--install", "opstack", "./helm/opstack",
 			"-n", namespace,
 			"--set", fmt.Sprintf("opNode.chainId=%d", chainId),
 			"--set", fmt.Sprintf("opNode.rpcUrl=%s", rpcUrl),
@@ -104,4 +115,12 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func generateJWTSecret() string {
+	secret := make([]byte, 32)
+	if _, err := rand.Read(secret); err != nil {
+		log.Fatalf("Failed to generate JWT secret: %v", err)
+	}
+	return hex.EncodeToString(secret)
 }

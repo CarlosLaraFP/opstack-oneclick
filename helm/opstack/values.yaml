@@ -1,7 +1,7 @@
 replicaCount: 1
 
 opNode:
-  image: ghcr.io/ethereum-optimism/op-node:latest
-  chainId: 420
-  rpcUrl: https://mainnet.optimism.io
+  image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.13.2
+  chainId: 999
+  rpcUrl: http://localhost:8545
   enableFaultProofs: true
