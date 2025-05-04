@@ -1,3 +1,6 @@
+test:
+	go test ./... -v
+
 kind:
 	kind create cluster --name opstack
 

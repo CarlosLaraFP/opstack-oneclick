@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -27,13 +29,23 @@ var deployCmd = &cobra.Command{
 		}
 
 		log.Println("🚀 Deploying OP Stack...")
-		if err := exec.Command("helm", "upgrade", "--install", "opstack", "./helm/opstack",
+
+		packagePath, err := filepath.Abs("../helm/opstack")
+		if err != nil {
+			log.Fatalf("Failed to get Helm chart path: %v", err)
+		}
+
+		c := exec.Command("helm", "upgrade", "--install", "opstack", packagePath,
 			"-n", namespace,
 			"--set", fmt.Sprintf("opNode.chainId=%d", chainId),
 			"--set", fmt.Sprintf("opNode.rpcUrl=%s", rpcUrl),
-		).Run(); err != nil {
-			log.Println(err)
+		)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		if err := c.Run(); err != nil {
+			log.Fatalf("🚨 Helm error: %v", err)
 		}
+
 	},
 }
 
