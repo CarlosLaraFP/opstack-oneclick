@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rollup-config
+data:
+  rollup.json: |
+    {
+      "genesis": {
+        "l1": {
+          "hash": "0xabc"
+        },
+        "l2": {
+          "hash": "0xdef"
+        },
+        "systemConfig": {
+          "batcherAddr": "0x0000000000000000000000000000000000000000"
+        }
+      },
+      "blockTime": 2,
+      "chainId": 420
+    }

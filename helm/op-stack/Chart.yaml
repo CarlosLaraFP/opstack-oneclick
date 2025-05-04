@@ -1,0 +1,5 @@
+apiVersion: v2
+name: opstack
+description: A mock OP Stack deployment for Kubernetes
+version: 0.1.0
+appVersion: "1.0"

@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"os/exec"
 
 	"github.com/spf13/cobra"
@@ -17,16 +17,79 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy the OP Stack to Kubernetes",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("🚀 Deploying OP Stack...")
-		exec.Command("make", "kind").Run()
-		exec.Command("make", "deploy").Run()
+		chainId, _ := cmd.Flags().GetInt("chain-id")
+		rpcUrl, _ := cmd.Flags().GetString("rpc-url")
+		namespace, _ := cmd.Flags().GetString("namespace")
+
+		log.Println("Creating namespace...")
+		if err := exec.Command("kubectl", "create", "namespace", namespace).Run(); err != nil {
+			log.Println(err)
+		}
+
+		log.Println("🚀 Deploying OP Stack...")
+		if err := exec.Command("helm", "upgrade", "--install", "opstack", "./helm/opstack",
+			"-n", namespace,
+			"--set", fmt.Sprintf("opNode.chainId=%d", chainId),
+			"--set", fmt.Sprintf("opNode.rpcUrl=%s", rpcUrl),
+		).Run(); err != nil {
+			log.Println(err)
+		}
 	},
 }
 
-func Execute() {
-	deployCmd.Flags().StringP("env", "e", "dev", "Environment to deploy")
+var statusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Show pod status in the given namespace",
+	Run: func(cmd *cobra.Command, args []string) {
+		namespace, err := cmd.Flags().GetString("namespace")
+		if err != nil {
+			log.Println(err)
+		}
+
+		fmt.Println("📦 Checking deployment status...")
+		out, err := exec.Command("kubectl", "get", "pods", "-n", namespace).CombinedOutput()
+		if err != nil {
+			log.Printf("Error: %v\n", err)
+		}
+		log.Println(string(out))
+	},
+}
+
+var destroyCmd = &cobra.Command{
+	Use:   "destroy",
+	Short: "Destroy the OP Stack deployment",
+	Run: func(cmd *cobra.Command, args []string) {
+		namespace, _ := cmd.Flags().GetString("namespace")
+
+		fmt.Println("Deleting Helm release...")
+		if err := exec.Command("helm", "uninstall", "opstack", "-n", namespace).Run(); err != nil {
+			log.Println(err)
+		}
+
+		fmt.Println("Deleting namespace...")
+		if err := exec.Command("kubectl", "delete", "namespace", namespace).Run(); err != nil {
+			log.Println(err)
+		}
+	},
+}
+
+// In a production OP Stack, rpc-url is how op-node connects to its execution engine (op-geth), exposing JSON-RPC on 8545.
+func Init() {
+	deployCmd.Flags().Int("chain-id", 420, "Chain ID for the OP Chain")
+	deployCmd.Flags().String("rpc-url", "http://localhost:8545", "RPC URL")
+	deployCmd.Flags().String("namespace", "opstack", "Kubernetes namespace for deployment")
+	statusCmd.Flags().String("namespace", "opstack", "Kubernetes namespace")
+	destroyCmd.Flags().String("namespace", "opstack", "Kubernetes namespace")
+
 	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(destroyCmd)
+}
+
+func Execute() {
+	Init()
+
 	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }

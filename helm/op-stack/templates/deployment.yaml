@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "opstack.fullname" . }}-node
+  labels:
+    app: {{ include "opstack.name" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -11,16 +13,42 @@ spec:
     metadata:
       labels:
         app: {{ include "opstack.name" . }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "7300"
     spec:
+      volumes:
+      - name: rollup-config-vol
+        configMap:
+          name: rollup-config
       containers:
-        - name: op-node
-          image: {{ .Values.opNode.image }}
-          ports:
-            - containerPort: 80
-          env:
-            - name: CHAIN_ID
-              value: "{{ .Values.opNode.chainId }}"
-            - name: RPC_URL
-              value: "{{ .Values.opNode.rpcUrl }}"
-            - name: FAULT_PROOFS
-              value: "{{ .Values.opNode.enableFaultProofs }}"
+      - name: op-node
+        image: {{ .Values.opNode.image }}
+        args:
+        - "--l2=http://localhost:8545"
+        - "--l1=http://localhost:8546"
+        - "--rollup.config=/etc/opstack/rollup.json"
+        ports:
+          - containerPort: 7300
+        env:
+          - name: CHAIN_ID
+            value: "{{ .Values.opNode.chainId }}"
+          - name: RPC_URL
+            value: "{{ .Values.opNode.rpcUrl }}"
+          - name: FAULT_PROOFS
+            value: "{{ .Values.opNode.enableFaultProofs }}"
+        volumeMounts:
+        - name: rollup-config-vol
+          mountPath: /etc/opstack/
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 7300
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 7300
+          initialDelaySeconds: 15
+          periodSeconds: 10

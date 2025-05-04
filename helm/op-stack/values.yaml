@@ -1,7 +1,7 @@
 replicaCount: 1
 
 opNode:
-  image: nginx  # placeholder for op-node
+  image: ghcr.io/ethereum-optimism/op-node:latest
   chainId: 420
-  rpcUrl: https://rpc.testnet.optimism.io
+  rpcUrl: https://mainnet.optimism.io
   enableFaultProofs: true
