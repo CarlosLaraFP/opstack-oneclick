@@ -1,7 +1,18 @@
 # opstack-oneclick
-Go-powered CLI tool that automates the deployment of a mocked OP Stack to a local Kubernetes cluster using Helm. It simulates `op-node`, `op-geth`, and related services, allowing protocol teams to experiment with fast, repeatable, modular deployments.
+Go-powered CLI + Helm scaffolding tool for deploying a mock OP Stack to Kubernetes — simulating how protocol developers would spin up their own L2 chain on the Superchain.
 
-> 🧠 Built as a proof-of-concept to explore how platform engineering principles — such as one-click workflows, Helm-based modularity, and Kubernetes-native automation — can accelerate OP Stack protocol development.
+> Built as a proof-of-concept to explore how platform engineering principles — such as one-click workflows, Helm-based modularity, and Kubernetes-native automation — can accelerate OP Stack protocol development.
+
+---
+
+## Purpose
+
+This project demonstrates what it would feel like for a protocol team to deploy an OP Stack-based L2 chain with 1 command, using Kubernetes-native tooling under the hood. While the services are mocked (or partially functional), the deployment flow mirrors how Base, Zora, or Mode might bootstrap their own OP Chain. In the real Superchain ecosystem, protocol teams are responsible for deploying and managing their own OP Chains using the OP Stack. This project:
+
+- Abstracts away infra complexity with a single CLI command
+- Demonstrates modular, reproducible configuration of OP Stack parameters
+- Simulates onboarding DX for external protocol teams
+- Models decentralized Superchain participation
 
 ---
 
@@ -31,48 +42,48 @@ The OP Stack's modular design enables scalability, consistency, and shared tooli
 
 ## 🛠️ Features
 
-- 🧰 **Go CLI**: One-click deployment with `opstack deploy`
-- 📦 **Helm Chart**: Parameterized mock of OP Stack components
-- ⚙️ **KinD Support**: Lightweight local Kubernetes testing
-- 🔧 **Custom Config**: Chain-specific values passed via `values.yaml`
-- 📚 **Modular by Design**: Easy to extend with real `op-node`, `op-geth`, etc.
+- Go CLI powered by Cobra
+- deploy, status, and destroy commands
+- Configurable chainId, rpcUrl, and namespace
+- Real OP Stack container image (op-node)
+- Helm chart with injected values and ConfigMap-mounted rollup.json
+- Health checks (readiness/liveness probes) built in
+- Local testing with KinD
+- Namespace isolation for multi-chain simulation
 
 ---
 
-## 📄 Helm Configuration
+## Technologies
+| Layer              | Tools Used                                        |
+| ------------------ | ------------------------------------------------- |
+| CLI UX             | Go + Cobra                                        |
+| Infra Backend      | Helm + Kubernetes                                 |
+| Local Runtime      | KinD (Kubernetes in Docker)                       |
+| OP Stack Component | `ghcr.io/ethereum-optimism/op-node:latest`        |
+| Configurable       | Chain ID, RPC URL, Namespace, Rollup config       |
+| Observability      | Readiness/liveness probes, Prometheus annotations |
 
-Here are example values passed into the chart:
-
-```yaml
-chainId: 420
-rpcUrl: https://rpc.testnet.optimism.io
-enableFaultProofs: true
-opNode:
-  image: nginx  # Placeholder for real `op-node`
-```
 ---
 
-## Quicktsart
+## Quickstart
 
 ```bash
-# Create KinD cluster
 make kind
-
-# Deploy mock OP Stack components
+make build
 make deploy
-
-# Or use Go CLI
-go run main.go deploy
+make status
+make destroy
 ```
+
 ---
 
 ## Roadmap
 
-- ✅ Replace mock container with real op-node
-- ✅ Add support for full OP Stack topology: batcher, proposer, etc.
-- 🔜 Chain-aware values.yaml templates (e.g., Base vs Zora)
-- 🔜 Prometheus annotations + alerts for key pod signals
-- 🔜 GitOps-compatible helmfile or ArgoCD example
+- Add support for full OP Stack topology: batcher, proposer, etc.
+- Replace mock RPC URLs with actual op-geth deployment
+- Chain-aware values.yaml templates (e.g., Base vs Zora)
+- Add metrics aggregation via Prometheus + Grafana
+- Implement chain upgrade workflow (upgrade command)
 
 ---
 

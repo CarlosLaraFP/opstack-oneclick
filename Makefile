@@ -13,5 +13,8 @@ deploy:
 status:
 	./opstack status --namespace opstack
 
+destroy:
+	./opstack destroy --namespace opstack
+
 clean:
 	kind delete cluster
