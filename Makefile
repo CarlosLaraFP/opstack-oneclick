@@ -1,7 +1,12 @@
 test:
 	go test ./... -v
 
-kind:
+kind-install:
+	curl -Lo kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+	chmod +x kind
+	sudo mv kind /usr/local/bin/kind
+
+kind: kind-install
 	kind create cluster --name opstack
 
 docker:
@@ -23,5 +28,5 @@ status:
 destroy:
 	./opstack destroy --namespace opstack
 
-clean:
+clean: destroy
 	kind delete cluster

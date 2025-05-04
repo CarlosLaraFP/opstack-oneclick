@@ -1,4 +1,4 @@
-name: Go CI
+name: CI
 
 on:
   push:
@@ -7,22 +7,33 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.24'
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24'
 
-      - name: Install dependencies
-        run: go mod tidy
+    - name: Unit tests
+      run: make test
 
-      - name: Build
-        run: make build
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Run unit tests
-        run: make test
+    - name: Install KinD & create cluster
+      run: make kind
+
+    - name: Build CLI & install OP Stack
+      run: make deploy
+
+    - name: Cleanup
+      if: always()
+      run: make clean
