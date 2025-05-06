@@ -22,7 +22,6 @@ jobs:
       run: make test
 
   deploy:
-    needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -30,6 +29,14 @@ jobs:
 
     - name: Install KinD & create cluster
       run: make kind
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24'
+
+    - name: Unit tests
+      run: make test
 
     - name: Build CLI & install OP Stack
       run: make deploy
